@@ -1,4 +1,6 @@
-#include <Bluepad32.h>
+  #include <Bluepad32.h>
+  #include <uni.h>
+
 // REQUIRES bluepad + esp32 library
 // https://bluepad32.readthedocs.io/en/latest/plat_arduino/ 
 
@@ -8,6 +10,8 @@
 
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
 
+static const char* controller_addr_string = "48:18:8D:08:54:67";
+
 // This callback gets called any time a new gamepad is connected.
 // Up to 4 gamepads can be connected at the same time.
 void onConnectedController(ControllerPtr ctl) {
@@ -15,11 +19,20 @@ void onConnectedController(ControllerPtr ctl) {
     for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
         if (myControllers[i] == nullptr) {
             Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);
-            // Additionally, you can get certain gamepad properties like:
-            // Model, VID, PID, BTAddr, flags, etc.
+
+            // Get controller properties
             ControllerProperties properties = ctl->getProperties();
-            Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id,
-                           properties.product_id);
+            
+            // Format Bluetooth address from byte array to readable format
+            char btAddrStr[18];  // "XX:XX:XX:XX:XX:XX" + null terminator
+            snprintf(btAddrStr, sizeof(btAddrStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+                     properties.btaddr[0], properties.btaddr[1], properties.btaddr[2],
+                     properties.btaddr[3], properties.btaddr[4], properties.btaddr[5]);
+
+            // Print the controller details
+            Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x, BTAddr=%s\n", 
+                          ctl->getModelName().c_str(), properties.vendor_id, properties.product_id, btAddrStr);
+
             myControllers[i] = ctl;
             foundEmptySlot = true;
             break;
@@ -29,6 +42,7 @@ void onConnectedController(ControllerPtr ctl) {
         Serial.println("CALLBACK: Controller connected, but could not found empty slot");
     }
 }
+
 
 void onDisconnectedController(ControllerPtr ctl) {
     bool foundController = false;
@@ -72,8 +86,9 @@ void dumpGamepad(ControllerPtr ctl) {
 
 void sendSerial(ControllerPtr ctl) {
     long dpad = ctl->dpad();
-    uint8_t dataPacket = dpad;
-    Serial.printf("dpad: 0x%02x, packet: %X \n", dpad, dataPacket);
+    long buttons = ctl->buttons();
+    uint8_t dataPacket = dpad + buttons;
+    Serial.printf("dpad: 0x%02x, buttons: 0x%04x, packet: %X \n", dpad, buttons, dataPacket);
     if(ctl->buttons() != 0) {
         Serial2.write(0x31); // Test
     } else {
@@ -118,7 +133,7 @@ void setup() {
     // Calling "forgetBluetoothKeys" in setup() just as an example.
     // Forgetting Bluetooth keys prevents "paired" gamepads to reconnect.
     // But it might also fix some connection / re-connection issues.
-    BP32.forgetBluetoothKeys();
+    // BP32.forgetBluetoothKeys();
 
     // Enables mouse / touchpad support for gamepads that support them.
     // When enabled, controllers like DualSense and DualShock4 generate two connected devices:
@@ -126,8 +141,21 @@ void setup() {
     // - Second one, which is a "virtual device", is a mouse.
     // By default, it is disabled.
     BP32.enableVirtualDevice(false);
-}
 
+    // Allowlist configuration to only allow a specific controller
+    static const char* controller_addr_string = "48:18:8D:08:54:67"; // Replace with the Bluetooth address of your controller
+    bd_addr_t controller_addr;
+    sscanf_bd_addr(controller_addr_string, controller_addr);
+
+    // Add the controller's Bluetooth address to the allowlist
+    uni_bt_allowlist_add_addr(controller_addr);
+
+    // Enable the allowlist
+    uni_bt_allowlist_set_enabled(true);
+
+    Serial.println("Allowlist enabled for specific controller.");
+}
+;ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc;;;;;;;;;
 // Arduino loop function. Runs in CPU 1.
 void loop() {
     // This call fetches all the controllers' data.
