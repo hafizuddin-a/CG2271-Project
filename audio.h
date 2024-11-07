@@ -24,7 +24,7 @@
 #define REST 0
 
 // Volume and tempo constants
-#define VOLUME 10         // Higher value = quieter sound
+#define VOLUME 5        // Higher value = quieter sound
 #define TEMPO 1200        // Base tempo for melody timing
 
 // External variables for current note positions in melodies

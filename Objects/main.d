@@ -20,3 +20,7 @@
 .\objects\main.o: C:\Users\User\AppData\Local\Arm\Packs\Keil\Kinetis_KLxx_DFP\1.15.1\Device\Include\MKL25Z4.h
 .\objects\main.o: init.h
 .\objects\main.o: C:\Users\User\AppData\Local\Arm\Packs\Keil\Kinetis_KLxx_DFP\1.15.1\Device\Include\MKL25Z4.h
+.\objects\main.o: motor_control.h
+.\objects\main.o: C:\Users\User\AppData\Local\Arm\Packs\Keil\Kinetis_KLxx_DFP\1.15.1\Device\Include\MKL25Z4.h
+.\objects\main.o: init.h
+.\objects\main.o: C:\Users\User\AppData\Local\Arm\Packs\Keil\Kinetis_KLxx_DFP\1.15.1\Device\Include\MKL25Z4.h

@@ -86,14 +86,10 @@ void dumpGamepad(ControllerPtr ctl) {
 
 void sendSerial(ControllerPtr ctl) {
     long dpad = ctl->dpad();
-    long buttons = ctl->buttons();
+    long buttons = ctl->buttons() ? ctl->buttons() + 10 : 0; // 11 backwards, 18 forwards
     uint8_t dataPacket = dpad + buttons;
     Serial.printf("dpad: 0x%02x, buttons: 0x%04x, packet: %X \n", dpad, buttons, dataPacket);
-    if(ctl->buttons() != 0) {
-        Serial2.write(0x31); // Test
-    } else {
-        Serial2.write(dataPacket);
-    }
+    Serial2.write(dataPacket);
 }
 
 void processGamepad(ControllerPtr ctl) {
@@ -155,7 +151,7 @@ void setup() {
 
     Serial.println("Allowlist enabled for specific controller.");
 }
-;ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc;;;;;;;;;
+
 // Arduino loop function. Runs in CPU 1.
 void loop() {
     // This call fetches all the controllers' data.
